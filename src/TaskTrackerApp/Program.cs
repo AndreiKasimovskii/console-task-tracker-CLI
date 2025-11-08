@@ -1,19 +1,16 @@
-﻿using static System.Console;
+﻿using TaskTrackerApp.Commands;
+using static System.Console;
 
+var commands = new Dictionary<string, ICommand>();
 WriteLine("Task Tracker (CLI)\n");
 
-if (args.Length == 0)
-{
-    WriteLine("Использование: tasktrackerapp [command]");
+StartApplication(commands.Values);
 
-    var commands = GetAllCommands();
-    WriteLine("Команды (commands):");
-    foreach(var command in commands)
+void StartApplication(IReadOnlyCollection<ICommand> commands)
+{
+    WriteLine("Меню команд:");
+    foreach (var command in commands)
     {
-        WriteLine($"\t{command.Name}\t{command.Description}");
+        WriteLine($"\t{command.Name} - {command.Description}");
     }
 }
-
-Command[] GetAllCommands() => [];
-
-record Command(string Name, string? Description);
