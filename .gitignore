@@ -56,3 +56,6 @@ nunit-*.xml
 
 # MacOS
 *.DS_Store
+
+# VisualStudio
+.vs/
