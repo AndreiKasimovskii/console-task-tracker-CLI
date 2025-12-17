@@ -1,5 +1,3 @@
-using System;
-
 namespace TaskTracker.Domain.Data;
 
 public class OperationResult
@@ -10,10 +8,11 @@ public class OperationResult
 
     public ErrorType? ErrorType { get; set; }
 
-    private OperationResult(bool isSuccess, string? errorMessage = null)
+    private OperationResult(bool isSuccess, string? errorMessage = null, ErrorType? errorType = null)
     {
         IsSuccess = isSuccess;
         ErrorMessage = errorMessage;
+        ErrorType = errorType;
     }
 
     public static OperationResult Success()
@@ -21,8 +20,8 @@ public class OperationResult
         return new OperationResult(true);
     }
 
-    public static OperationResult Failure(string errorMessage)
+    public static OperationResult Failure(string errorMessage, ErrorType errorType)
     {
-        return new OperationResult(false, errorMessage);
+        return new OperationResult(false, errorMessage, errorType);
     }
 }
