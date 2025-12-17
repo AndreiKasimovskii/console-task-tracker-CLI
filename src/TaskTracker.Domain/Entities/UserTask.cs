@@ -14,5 +14,5 @@ public class UserTask
 
     public UserTaskStatus Status { get; set; }
 
-    public DateTimeOffset? DeadLine { get; set; }
+    public DateTimeOffset? Deadline { get; set; }
 }
