@@ -1,5 +1,3 @@
-using System;
-
 namespace TaskTracker.Domain.Entities;
 
 public class UserTask
