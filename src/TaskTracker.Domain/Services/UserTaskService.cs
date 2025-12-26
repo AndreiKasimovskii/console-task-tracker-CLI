@@ -18,12 +18,15 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
                     + $" than the date of the task({task.CreatedDate})", ErrorType.ValidationError);
             }
             
-            var similarTask = await taskRepository.GetTask(task.Title, task.Deadline);
+            var similarTask = await taskRepository.Find(t => t.Title == task.Title);
             if(similarTask is not null)
-                return OperationResult.Failure($"Similiar task already exists (Id: {similarTask.Id})",
-                    ErrorType.ValidationError);
+            {
+                if(similarTask.Status == UserTaskStatus.Active && similarTask.Deadline.Equals(task.Deadline))
+                    return OperationResult.Failure($"Similiar task already exists (Id: {similarTask.Id})",
+                        ErrorType.ValidationError);
+            }
 
-            await taskRepository.CreateTask(task);
+            await taskRepository.Create(task);
             return OperationResult.Success();
         }
         catch(Exception ex)
@@ -37,7 +40,7 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
     {
         try
         {
-            var editedTask = await taskRepository.GetTask(taskId);
+            var editedTask = await taskRepository.GetById(taskId);
             if(editedTask is null)
                 return OperationResult.Failure($"Task with identifier = {taskId} does not exists.",
                     ErrorType.NotFound);
@@ -58,7 +61,7 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
             if(!deadline.NotChange)
                 editedTask.Deadline = deadline.Value;
 
-            await taskRepository.UpdateTask(editedTask);
+            await taskRepository.Update(editedTask);
             return OperationResult.Success();
         }
         catch(Exception ex)
@@ -75,7 +78,7 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
                 return OperationResult.Failure($"Task with identifier = {taskId} does not exists.",
                     ErrorType.NotFound);
 
-            await taskRepository.DeleteTask(taskId);
+            await taskRepository.Delete(taskId);
             return OperationResult.Success();
         }
         catch(Exception ex)
@@ -88,7 +91,7 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
     {
         try
         {
-            var task = await taskRepository.GetTask(taskId);
+            var task = await taskRepository.GetById(taskId);
             if (task is null)
                 return OperationResult.Failure($"Task with identifier = {taskId} does not exists.",
                     ErrorType.NotFound);
@@ -105,7 +108,7 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
     {
         try
         {
-            var task = await taskRepository.GetTask(taskId);
+            var task = await taskRepository.GetById(taskId);
             if (task is null)
                 return OperationResult.Failure($"Task with identifier = {taskId} does not exists.",
                     ErrorType.NotFound);
@@ -116,7 +119,7 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
             }
 
             task.Status = newTaskStatus;
-            await taskRepository.UpdateTask(task);
+            await taskRepository.Update(task);
             return OperationResult.Success();
         }
         catch(Exception ex)
@@ -127,7 +130,7 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
 
     public async Task<ReadOnlyCollection<UserTask>> ShowTasksList()
     {
-        return new ReadOnlyCollection<UserTask>(await taskRepository.GetActiveTasks());
+        return new ReadOnlyCollection<UserTask>(await taskRepository.GetAllActive());
     }
 
     private bool CanChangeStatus(UserTaskStatus currentTaskStatus, UserTaskStatus newTaskStatus)

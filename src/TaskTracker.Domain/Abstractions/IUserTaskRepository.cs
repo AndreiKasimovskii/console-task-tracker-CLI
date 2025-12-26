@@ -4,17 +4,17 @@ namespace TaskTracker.Domain.Abstractions;
 
 public interface IUserTaskRepository
 {
-    Task<UserTask?> GetTask(string title, DateTimeOffset? deadline);
+    Task<UserTask?> GetById(long id);
 
-    Task<UserTask?> GetTask(long id);
+    Task Create(UserTask task);
 
-    Task CreateTask(UserTask task);
-
-    Task UpdateTask(UserTask task);
+    Task Update(UserTask task);
 
     Task<bool> IsExists(long id);
 
-    Task DeleteTask(long id);
+    Task Delete(long id);
 
-    Task<UserTask[]> GetActiveTasks();
+    Task<UserTask[]> GetAllActive();
+
+    Task<UserTask?> Find(Func<UserTask, bool> predicate);
 }
