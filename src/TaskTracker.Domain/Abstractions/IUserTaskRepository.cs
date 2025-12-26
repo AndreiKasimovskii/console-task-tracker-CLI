@@ -10,8 +10,6 @@ public interface IUserTaskRepository
 
     Task Update(UserTask task);
 
-    Task<bool> IsExists(long id);
-
     Task Delete(long id);
 
     Task<UserTask[]> GetAllActive();

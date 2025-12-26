@@ -74,7 +74,8 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
     {
         try
         {
-            if(!await taskRepository.IsExists(taskId))
+            var deletedTask = taskRepository.GetById(taskId);
+            if(deletedTask is null)
                 return OperationResult.Failure($"Task with identifier = {taskId} does not exists.",
                     ErrorType.NotFound);
 
