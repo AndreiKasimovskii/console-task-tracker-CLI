@@ -1,7 +1,4 @@
 using System.Collections.ObjectModel;
-using TaskTracker.Domain.Abstractions;
-using TaskTracker.Domain.Data;
-using TaskTracker.Domain.Entities;
 
 namespace TaskTracker.Domain.Services;
 
@@ -54,7 +51,7 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
 
     public async Task<OperationResult> RemoveTask(long taskId)
     {
-        var deletedTask = taskRepository.GetById(taskId);
+        var deletedTask = await taskRepository.GetById(taskId);
         if(deletedTask is null)
             return OperationResult.Failure(ErrorType.NotFound);
 

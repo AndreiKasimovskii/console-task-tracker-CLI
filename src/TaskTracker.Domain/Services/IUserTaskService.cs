@@ -1,6 +1,4 @@
 using System.Collections.ObjectModel;
-using TaskTracker.Domain.Data;
-using TaskTracker.Domain.Entities;
 
 namespace TaskTracker.Domain.Services;
 
