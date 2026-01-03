@@ -1,6 +1,9 @@
 using System.Collections.ObjectModel;
+using TaskTracker.Domain.Data;
+using TaskTracker.Domain.DataTransferObjects;
+using TaskTracker.Domain.Entities;
 
-namespace TaskTracker.Domain.Services;
+namespace TaskTracker.Domain.Abstractions;
 
 public interface IUserTaskService
 {
@@ -15,5 +18,5 @@ public interface IUserTaskService
     Task<OperationResult> EditTask(long taskId, Parameter<string> title, Parameter<string> description,
         Parameter<DateTimeOffset?> deadline);
 
-    Task<OperationResult> AddTask(UserTask task);
+    Task<OperationResult> AddTask(UserTaskDto task);
 }

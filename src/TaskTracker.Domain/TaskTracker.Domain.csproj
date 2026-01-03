@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Abstractions/" />
     <Folder Include="Data/" />
+    <Folder Include="DataTransferObjects/" />
     <Folder Include="Entities/" />
     <Folder Include="Services/" />
   </ItemGroup>

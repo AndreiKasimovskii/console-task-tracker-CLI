@@ -6,5 +6,6 @@ public enum ErrorType
     InputDateLaterDeadline,
     DuplicateTask,
     IncorrectStatus,
+    InvalidTitle,
     UnknownException
 }

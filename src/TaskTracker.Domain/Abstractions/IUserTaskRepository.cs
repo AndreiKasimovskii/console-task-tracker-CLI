@@ -14,6 +14,5 @@ public interface IUserTaskRepository
 
     Task<UserTask[]> GetAllActive();
 
-    // осознанный компромисс
-    Task<UserTask?> Find(Func<UserTask, bool> predicate);
+    Task<bool> HasDuplicate(string title, DateTimeOffset? deadline, long excludeId = -1);
 }

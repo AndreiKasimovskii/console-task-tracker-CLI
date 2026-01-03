@@ -1,25 +1,27 @@
 using System.Collections.ObjectModel;
+using TaskTracker.Domain.Abstractions;
+using TaskTracker.Domain.Data;
+using TaskTracker.Domain.DataTransferObjects;
+using TaskTracker.Domain.Entities;
 
 namespace TaskTracker.Domain.Services;
 
 public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskService
 {
-    public async Task<OperationResult> AddTask(UserTask task)
+    public async Task<OperationResult> AddTask(UserTaskDto task)
     {
-        if(task.Deadline.HasValue
-            && task.Deadline.Value.Date.CompareTo(task.CreatedDate.Date) < 0)
+        UserTask newTask = new(task.Title)
         {
-            return OperationResult.Failure(ErrorType.InputDateLaterDeadline);
-        }
-            
-        var similarTask = await taskRepository.Find(t => t.Title == task.Title);
-        if(similarTask is not null)
-        {
-            if(similarTask.Status == UserTaskStatus.Active && similarTask.Deadline.Equals(task.Deadline))
-                return OperationResult.Failure(ErrorType.DuplicateTask);
-        }
+            Description = task.Description,
+        };
 
-        await taskRepository.Create(task);
+        if(!newTask.TrySetDeadline(task.Deadline))
+            return OperationResult.Failure(ErrorType.InputDateLaterDeadline);
+
+        if(await taskRepository.HasDuplicate(newTask.Title, newTask.Deadline))
+            return OperationResult.Failure(ErrorType.DuplicateTask);
+
+        await taskRepository.Create(newTask);
         return OperationResult.Success();
     }
 
@@ -29,21 +31,20 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
         var editedTask = await taskRepository.GetById(taskId);
         if(editedTask is null)
             return OperationResult.Failure(ErrorType.NotFound);
-        
-        if(!deadline.NotChange && deadline.Value.HasValue
-            && deadline.Value.Value.Date.CompareTo(editedTask.CreatedDate.Date) < 0)
-        {
-            return OperationResult.Failure(ErrorType.InputDateLaterDeadline);
-        }
 
-        if(!title.NotChange && title.Value is not null)
-            editedTask.Title = title.Value;
+        if(!title.NotChange)
+            if(!editedTask.TryChangeTitle(title.Value))
+                return OperationResult.Failure(ErrorType.InvalidTitle);
 
         if(!description.NotChange)
             editedTask.Description = description.Value;
 
         if(!deadline.NotChange)
-            editedTask.Deadline = deadline.Value;
+            if(!editedTask.TrySetDeadline(deadline.Value))
+                return OperationResult.Failure(ErrorType.InputDateLaterDeadline);
+
+        if(await taskRepository.HasDuplicate(editedTask.Title, editedTask.Deadline, editedTask.Id))
+            return OperationResult.Failure(ErrorType.DuplicateTask);
 
         await taskRepository.Update(editedTask);
         return OperationResult.Success();
@@ -74,12 +75,11 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
         if (task is null)
             return OperationResult.Failure(ErrorType.NotFound);
 
-        if(!CanChangeStatus(task.Status))
+        if(!task.TryChangeStatus(newTaskStatus))
         {
             return OperationResult.Failure(ErrorType.IncorrectStatus);
         }
-
-        task.Status = newTaskStatus;
+        
         await taskRepository.Update(task);
         return OperationResult.Success();
     }
@@ -87,10 +87,5 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
     public async Task<ReadOnlyCollection<UserTask>> ShowTasksList()
     {
         return new ReadOnlyCollection<UserTask>(await taskRepository.GetAllActive());
-    }
-
-    private bool CanChangeStatus(UserTaskStatus currentTaskStatus)
-    {
-        return currentTaskStatus == UserTaskStatus.Active;
     }
 }
