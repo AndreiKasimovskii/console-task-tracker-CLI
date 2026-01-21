@@ -12,16 +12,18 @@ public class FileStore
         if(!File.Exists(_filePath))
             return new StorageModel();
 
-        await using var readedStream = new FileStream(_filePath, FileMode.Open, FileAccess.Read);
-        var result = (await JsonSerializer.DeserializeAsync<StorageModel>(readedStream)) ?? new();
+        await using var readedStream = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        if(readedStream.Length == 0)
+            return new StorageModel();
+        var result = await JsonSerializer.DeserializeAsync<StorageModel>(readedStream);
 
-        return result;
+        return result ?? new();
     }
 
     public async Task WriteToFileAsync(StorageModel storageModel)
     {
-        var tempFilePath = Path.Combine(Environment.CurrentDirectory, Path.GetTempFileName());
-        await using var writedStream = new FileStream(tempFilePath, FileMode.CreateNew, FileAccess.Write);
+        var tempFilePath = Path.Combine(Environment.CurrentDirectory, "tempfile.json");
+        await using var writedStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
         await JsonSerializer.SerializeAsync(writedStream, storageModel);
         File.Move(tempFilePath, _filePath, true);
     }

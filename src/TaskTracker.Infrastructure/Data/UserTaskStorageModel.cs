@@ -10,7 +10,7 @@ public class UserTaskStorageModel
 
     public DateTimeOffset CreatedDate { get; set; }
 
-    public string? Status { get; set; }
+    public required string Status { get; set; }
 
     public DateTimeOffset? Deadline { get; set; }
 }

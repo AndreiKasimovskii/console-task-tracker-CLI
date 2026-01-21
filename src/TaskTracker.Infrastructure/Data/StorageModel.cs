@@ -1,5 +1,3 @@
-using System;
-
 namespace TaskTracker.Infrastructure.Data;
 
 public class StorageModel

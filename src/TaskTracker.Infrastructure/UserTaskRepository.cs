@@ -1,9 +1,6 @@
-using System;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using TaskTracker.Domain.Abstractions;
 using TaskTracker.Domain.Entities;
-using TaskTracker.Infrastructure.Data;
 
 namespace TaskTracker.Infrastructure;
 
@@ -13,97 +10,187 @@ public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
 
     public async Task Create(UserTask task)
     {
-        await _semaphoreSlim.WaitAsync();
-
-        var storageModel = await fileStore.ReadFromFileAsync();
-
-        storageModel.Tasks.Add(new()
+        bool _lockTaken = false;
+        try
         {
-            Id = ++storageModel.LastId,
-            Title = task.Title,
-            CreatedDate = task.CreatedDate,
-            Status = task.Status.ToString(),
-            Description = task.Description,
-            Deadline = task.Deadline
-        });
+            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!_lockTaken)
+                throw new TimeoutException("Resource access timeout exceeded");
 
-        await fileStore.WriteToFileAsync(storageModel);
+            var storageModel = await fileStore.ReadFromFileAsync();
 
-        _semaphoreSlim.Release();
+            storageModel.Tasks.Add(new()
+            {
+                Id = ++storageModel.LastId,
+                Title = task.Title,
+                CreatedDate = task.CreatedDate,
+                Status = task.Status.ToString(),
+                Description = task.Description,
+                Deadline = task.Deadline
+            });
+
+            await fileStore.WriteToFileAsync(storageModel);
+        }
+        catch(JsonException ex)
+        {
+            throw new InvalidDataException("Failed to save task", ex);
+        }
+        finally
+        {
+            if (_lockTaken)
+                _semaphoreSlim.Release();
+        }
     }
 
     public async Task Delete(long id)
     {
-        await _semaphoreSlim.WaitAsync();
+        bool _lockTaken = false;
+        try
+        {
+            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!_lockTaken)
+                throw new TimeoutException("Resource access timeout exceeded");
 
-        var storageModel = await fileStore.ReadFromFileAsync();
+            var storageModel = await fileStore.ReadFromFileAsync();
 
-        storageModel.Tasks.RemoveAll(t => t.Id == id);
+            storageModel.Tasks.RemoveAll(t => t.Id == id);
 
-        await fileStore.WriteToFileAsync(storageModel);
-
-        _semaphoreSlim.Release();
+            await fileStore.WriteToFileAsync(storageModel);
+        }
+        catch(JsonException ex)
+        {
+            throw new InvalidDataException("Failed to remove task", ex);
+        }
+        finally
+        {
+            if(_lockTaken)
+                _semaphoreSlim.Release();
+        }
     }
 
     public async Task<UserTask[]> GetAllActive()
     {
-        await _semaphoreSlim.WaitAsync();
+        bool _lockTaken = false;
+        try
+        {
+            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!_lockTaken)
+                throw new TimeoutException("Resource access timeout exceeded");
 
-        var storageModel = await fileStore.ReadFromFileAsync();
+            var storageModel = await fileStore.ReadFromFileAsync();
 
-        _semaphoreSlim.Release();
-
-        return [.. storageModel.Tasks.Select(t => UserTask.Restore(t.Id, t.Title, t.Description, t.CreatedDate, t.Status, t.Deadline))];
+            return [.. storageModel.Tasks
+                .Where(t => t.Status == "Active")
+                .Select(t => UserTask.Restore(t.Id, t.Title, t.Description, t.CreatedDate, t.Status, t.Deadline))];
+        }
+        catch(JsonException ex)
+        {
+            throw new InvalidDataException("Failed to read storage", ex);
+        }
+        catch(StorageCorruptedException ex)
+        {
+            throw new InvalidDataException("Data in the storage is corrupted", ex);
+        }
+        finally
+        {
+            if(_lockTaken)
+                _semaphoreSlim.Release();
+        }
     }
 
     public async Task<UserTask?> GetById(long id)
     {
-        await _semaphoreSlim.WaitAsync();
+        bool _lockTaken = false;
+        try
+        {
+            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!_lockTaken)
+                throw new TimeoutException("Resource access timeout exceeded");
 
-        var storageModel = await fileStore.ReadFromFileAsync();
+            var storageModel = await fileStore.ReadFromFileAsync();
 
-        _semaphoreSlim.Release();
-
-        var task = storageModel.Tasks.FirstOrDefault(t => t.Id == id);
-        return task is not null 
-            ? UserTask.Restore(task.Id, 
-                task.Title, 
-                task.Description,
-                task.CreatedDate, 
-                task.Status, 
-                task.Deadline)
-            : null;
+            var task = storageModel.Tasks.FirstOrDefault(t => t.Id == id);
+            return task is not null 
+                ? UserTask.Restore(task.Id, 
+                    task.Title, 
+                    task.Description,
+                    task.CreatedDate, 
+                    task.Status, 
+                    task.Deadline)
+                : null;
+        }
+        catch(JsonException ex)
+        {
+            throw new InvalidDataException("Failed to read storage", ex);
+        }
+        catch(StorageCorruptedException ex)
+        {
+            throw new InvalidDataException("Data in the storage is corrupted", ex);
+        }
+        finally
+        {
+            if(_lockTaken)
+                _semaphoreSlim.Release();
+        }
     }
 
     public async Task<bool> HasDuplicate(string title, DateTimeOffset? deadline, long excludeId = -1)
     {
-        await _semaphoreSlim.WaitAsync();
+        bool _lockTaken = false;
+        try
+        {
+            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!_lockTaken)
+                throw new TimeoutException("Resource access timeout exceeded");
 
-        var storageModel = await fileStore.ReadFromFileAsync();
-
-        _semaphoreSlim.Release();
-
-        var task = storageModel.Tasks.FirstOrDefault(t => t.Title.Equals(title, StringComparison.OrdinalIgnoreCase)
-            && t.Deadline.Equals(deadline?.ToUniversalTime())
-            && t.Id != excludeId);
-        return task is not null;
+            var storageModel = await fileStore.ReadFromFileAsync();
+            var deadlineDate = deadline?.ToUniversalTime().Date;
+            return storageModel.Tasks
+                .Select(t => new { Task = t, DeadlineDate = t.Deadline?.ToUniversalTime().Date })
+                .Any(t => t.Task.Status.Equals("Active", StringComparison.Ordinal)
+                    && t.Task.Title.Equals(title, StringComparison.OrdinalIgnoreCase)
+                    && deadlineDate == t.DeadlineDate
+                    && t.Task.Id != excludeId);
+        }
+        catch(JsonException ex)
+        {
+            throw new InvalidDataException("Failed to read storage", ex);
+        }
+        finally
+        {
+            if(_lockTaken)
+                _semaphoreSlim.Release();
+        }
     }
 
     public async Task Update(UserTask task)
     {
-        await _semaphoreSlim.WaitAsync();
+        bool _lockTaken = false;
+        try
+        {
+            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!_lockTaken)
+                throw new TimeoutException("Resource access timeout exceeded");
 
-        var storageModel = await fileStore.ReadFromFileAsync();
+            var storageModel = await fileStore.ReadFromFileAsync();
 
-        var updatesTask = storageModel.Tasks.First(t => t.Id == task.Id);
+            var updatesTask = storageModel.Tasks.First(t => t.Id == task.Id);
 
-        updatesTask.Title = task.Title;
-        updatesTask.Status = task.Status.ToString();
-        updatesTask.Description = task.Description;
-        updatesTask.Deadline = task.Deadline;
+            updatesTask.Title = task.Title;
+            updatesTask.Status = task.Status.ToString();
+            updatesTask.Description = task.Description;
+            updatesTask.Deadline = task.Deadline;
 
-        await fileStore.WriteToFileAsync(storageModel);
-
-        _semaphoreSlim.Release();
+            await fileStore.WriteToFileAsync(storageModel);
+        }
+        catch(JsonException ex)
+        {
+            throw new InvalidDataException("Failed to update task", ex);
+        }
+        finally
+        {
+            if(_lockTaken)
+                _semaphoreSlim.Release();
+        }
     }
 }
