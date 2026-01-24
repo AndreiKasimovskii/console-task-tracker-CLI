@@ -6,15 +6,15 @@ namespace TaskTracker.Infrastructure;
 
 public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
 {
-    private static readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
 
     public async Task Create(UserTask task)
     {
-        bool _lockTaken = false;
+        bool lockTaken = false;
         try
         {
-            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
-            if(!_lockTaken)
+            lockTaken = await SemaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!lockTaken)
                 throw new TimeoutException("Resource access timeout exceeded");
 
             var storageModel = await fileStore.ReadFromFileAsync();
@@ -37,18 +37,18 @@ public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
         }
         finally
         {
-            if (_lockTaken)
-                _semaphoreSlim.Release();
+            if (lockTaken)
+                SemaphoreSlim.Release();
         }
     }
 
     public async Task Delete(long id)
     {
-        bool _lockTaken = false;
+        bool lockTaken = false;
         try
         {
-            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
-            if(!_lockTaken)
+            lockTaken = await SemaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!lockTaken)
                 throw new TimeoutException("Resource access timeout exceeded");
 
             var storageModel = await fileStore.ReadFromFileAsync();
@@ -63,18 +63,18 @@ public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
         }
         finally
         {
-            if(_lockTaken)
-                _semaphoreSlim.Release();
+            if(lockTaken)
+                SemaphoreSlim.Release();
         }
     }
 
     public async Task<UserTask[]> GetAllActive()
     {
-        bool _lockTaken = false;
+        bool lockTaken = false;
         try
         {
-            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
-            if(!_lockTaken)
+            lockTaken = await SemaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!lockTaken)
                 throw new TimeoutException("Resource access timeout exceeded");
 
             var storageModel = await fileStore.ReadFromFileAsync();
@@ -93,18 +93,18 @@ public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
         }
         finally
         {
-            if(_lockTaken)
-                _semaphoreSlim.Release();
+            if(lockTaken)
+                SemaphoreSlim.Release();
         }
     }
 
     public async Task<UserTask?> GetById(long id)
     {
-        bool _lockTaken = false;
+        bool lockTaken = false;
         try
         {
-            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
-            if(!_lockTaken)
+            lockTaken = await SemaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!lockTaken)
                 throw new TimeoutException("Resource access timeout exceeded");
 
             var storageModel = await fileStore.ReadFromFileAsync();
@@ -129,18 +129,18 @@ public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
         }
         finally
         {
-            if(_lockTaken)
-                _semaphoreSlim.Release();
+            if(lockTaken)
+                SemaphoreSlim.Release();
         }
     }
 
     public async Task<bool> HasDuplicate(string title, DateTimeOffset? deadline, long excludeId = -1)
     {
-        bool _lockTaken = false;
+        bool lockTaken = false;
         try
         {
-            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
-            if(!_lockTaken)
+            lockTaken = await SemaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!lockTaken)
                 throw new TimeoutException("Resource access timeout exceeded");
 
             var storageModel = await fileStore.ReadFromFileAsync();
@@ -158,18 +158,18 @@ public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
         }
         finally
         {
-            if(_lockTaken)
-                _semaphoreSlim.Release();
+            if(lockTaken)
+                SemaphoreSlim.Release();
         }
     }
 
     public async Task Update(UserTask task)
     {
-        bool _lockTaken = false;
+        bool lockTaken = false;
         try
         {
-            _lockTaken = await _semaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
-            if(!_lockTaken)
+            lockTaken = await SemaphoreSlim.WaitAsync(new TimeSpan(0, 0, 30));
+            if(!lockTaken)
                 throw new TimeoutException("Resource access timeout exceeded");
 
             var storageModel = await fileStore.ReadFromFileAsync();
@@ -189,8 +189,8 @@ public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
         }
         finally
         {
-            if(_lockTaken)
-                _semaphoreSlim.Release();
+            if(lockTaken)
+                SemaphoreSlim.Release();
         }
     }
 }
