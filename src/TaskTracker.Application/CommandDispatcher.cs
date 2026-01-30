@@ -9,8 +9,13 @@ class CommandDispatcher(IPresenter presenter)
 {
   private static readonly Dictionary<string, CommandInfo> CommandInfos = new()
   {
-    {"list", new CommandInfo("list", ListCommand.CreateCommand)},
-    {"add", new CommandInfo("add", AddCommand.CreateCommand)}
+    {"list", new CommandInfo(ListCommand.CreateCommand, 
+      "list " +
+      "\nКоманда выводит список активных задач на текущую дату. Задачи отсортированы по сроку выполнения.")},
+    {"add", new CommandInfo(AddCommand.CreateCommand, 
+      "add --title <title> [--desc <description>] [--deadline <deadline(yyyy-MM-dd)>]" +
+      "\nКоманда создает новую задачу с заголовком <title>, описанием <description> и сроком <deadline>." +
+      "Параметры --desc и -deadline не обязательные.")}
   };
 
   public async Task Run(string[] applicationParameters)
@@ -84,7 +89,7 @@ class CommandDispatcher(IPresenter presenter)
 
   private string AllCommandHelp()
   {
-    StringBuilder sb = new("Подсказка по всем командам приложения:");
+    StringBuilder sb = new("Подсказка по всем командам приложения:\n");
     foreach (var command in CommandInfos)
     {
       sb.AppendLine($"\t{command.Key}: {command.Value.HelpSection}");
@@ -147,7 +152,5 @@ class CommandDispatcher(IPresenter presenter)
     return commandArgs;
   }
 
-  private record CommandInfo(string HelpSection, Func<IUserTaskService, IPresenter, IDictionary<string, string?>, ICommand> CommandCreator);
+  private record CommandInfo(Func<IUserTaskService, IPresenter, IDictionary<string, string?>, ICommand> CommandCreator, string HelpSection);
 }
-
-class CommandParseException(string message) : Exception(message);
