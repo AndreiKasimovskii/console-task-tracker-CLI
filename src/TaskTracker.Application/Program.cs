@@ -1,4 +1,4 @@
-﻿namespace TaskTrackerCLI.App;
+﻿namespace TaskTracker.Application;
 
 internal class Program
 {

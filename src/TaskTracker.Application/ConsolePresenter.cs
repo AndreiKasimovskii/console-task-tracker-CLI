@@ -1,6 +1,6 @@
 using TaskTracker.Domain.Entities;
 
-namespace TaskTrackerCLI.App;
+namespace TaskTracker.Application;
 
 class ConsolePresenter : IPresenter
 {

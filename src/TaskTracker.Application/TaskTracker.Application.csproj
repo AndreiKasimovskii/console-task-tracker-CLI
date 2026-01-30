@@ -10,6 +10,10 @@
   <ItemGroup>
     <ProjectReference Include="../TaskTracker.Domain/TaskTracker.Domain.csproj" />
     <ProjectReference Include="../TaskTracker.Infrastructure/TaskTracker.Infrastructure.csproj" />
+
+    <Content Include="tasks.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

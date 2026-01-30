@@ -1,6 +1,6 @@
 using TaskTracker.Domain.Abstractions;
 
-namespace TaskTrackerCLI.App;
+namespace TaskTracker.Application;
 
 class ListCommand : ICommand
 {
@@ -13,7 +13,7 @@ class ListCommand : ICommand
     _presenter = presenter;
   }
 
-  public static ICommand CreateCommand(IUserTaskService service, IPresenter presenter, CommandParameter[] parameters)
+  public static ICommand CreateCommand(IUserTaskService service, IPresenter presenter, IDictionary<string,string?> _)
   {
     return new ListCommand(service, presenter);
   }

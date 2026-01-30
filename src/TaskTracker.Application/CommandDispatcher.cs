@@ -3,52 +3,21 @@ using TaskTracker.Domain.Abstractions;
 using TaskTracker.Domain.Services;
 using TaskTracker.Infrastructure;
 
-namespace TaskTrackerCLI.App;
+namespace TaskTracker.Application;
 
 class CommandDispatcher(IPresenter presenter)
 {
   private static readonly Dictionary<string, CommandInfo> CommandInfos = new()
   {
-    {"list", new CommandInfo([], [], "list", ListCommand.CreateCommand)}
+    {"list", new CommandInfo("list", ListCommand.CreateCommand)},
+    {"add", new CommandInfo("add", AddCommand.CreateCommand)}
   };
 
   public async Task Run(string[] applicationParameters)
   {
-    string commandName;
-    string[] commandParameters = [];
-
-    switch (applicationParameters.Length)
-    {
-      case 0:
-        presenter.PrintError("Не указана команда для выполнения!");
-        return;
-      case 1:
-        commandName = applicationParameters[0];
-        break;
-      default:
-        commandName = applicationParameters[0];
-        commandParameters = applicationParameters[1..];
-        break;
-    }
-
-    if (!CommandInfos.TryGetValue(commandName, out var commandInfo))
-    {
-      presenter.PrintError($"Команда {commandName} не определена в приложении.");
-      presenter.PrintHint(AllCommandHelp());
-      return;
-    }
-
-    if (!CommandParametersIsCorrect(commandInfo, commandParameters))
-    {
-      presenter.PrintError($"Не правильно определены параметры команды {commandName}!");
-      presenter.PrintHint(GetCommandHelp(commandName));
-      return;
-    }
-
     try
     {
-      var command = commandInfo.CommandCreator(new UserTaskService(new UserTaskRepository(new FileStore())),
-        presenter, []);
+      var command = ParseCommand(applicationParameters);
       await command.Execute();
     }
     catch (InvalidDataException exception)
@@ -62,6 +31,11 @@ class CommandDispatcher(IPresenter presenter)
     catch (IOException exception)
     {
       presenter.PrintError($"Ошибка ввода/вывода: {exception.Message}");
+    }
+    catch (CommandParseException exception)
+    {
+      presenter.PrintError($"Ошибка парсинга команды: {exception.Message}");
+      presenter.PrintHint(AllCommandHelp());
     }
     catch (Exception exception)
     {
@@ -80,7 +54,7 @@ class CommandDispatcher(IPresenter presenter)
       input = Console.ReadLine();
     } while (input is not ("Y" or "y" or "N" or "n"));
 
-    if(input is "Y" or "y" )
+    if (input is "Y" or "y")
     {
       ResetStorage();
     }
@@ -109,35 +83,71 @@ class CommandDispatcher(IPresenter presenter)
   }
 
   private string AllCommandHelp()
+  {
+    StringBuilder sb = new("Подсказка по всем командам приложения:");
+    foreach (var command in CommandInfos)
     {
-      StringBuilder sb = new("Подсказка по всем командам приложения:");
-      foreach (var command in CommandInfos)
+      sb.AppendLine($"\t{command.Key}: {command.Value.HelpSection}");
+    }
+
+    return sb.ToString();
+  }
+
+  private string GetCommandHelp(string commandName)
+  {
+    return string.Format("Подсказка по команде приложения {0}:\n\t{1}:{2}",
+      commandName,
+      commandName,
+      CommandInfos[commandName].HelpSection);
+  }
+
+  private ICommand ParseCommand(string[] args)
+  {
+    var commandName = args.Length > 0
+      ? args[0]
+      : throw new CommandParseException("Не указана команда для выполнения!");
+
+    if (!CommandInfos.TryGetValue(commandName, out var commandInfo))
+      throw new CommandParseException($"Команда {commandName} не определена в приложении.");
+
+    var commandArgs = PrepareArgs(args);
+
+    var command = commandInfo.CommandCreator(new UserTaskService(new UserTaskRepository(new FileStore())),
+      new ConsolePresenter(), commandArgs);
+
+    return command;
+  }
+
+  private IDictionary<string, string?> PrepareArgs(string[] args)
+  {
+    var commandArgs = new Dictionary<string, string?>();
+
+    if (args.Length <= 1)
+      return commandArgs;
+
+    if (!args[1].StartsWith("--"))
+      throw new CommandParseException("Неверный формат команды! Команда не может принимать значение без имени аргумента");
+
+    for (int i = 1; i < args.Length;)
+    {
+      string paramName = args[i];
+      string? value = null;
+      ++i;
+      if (i < args.Length 
+          && !args[i].StartsWith("--"))
       {
-        sb.AppendLine($"\t{command.Key}: {command.Value.HelpSection}");
+        value = args[i];
+        ++i;
       }
 
-      return sb.ToString();
+      if (!commandArgs.TryAdd(paramName, value))
+        throw new CommandParseException("Параметр указан дважды!");
     }
 
-    private string GetCommandHelp(string commandName)
-    {
-      return string.Format("Подсказка по команде приложения {0}:\n\t{1}:{2}",
-        commandName,
-        commandName,
-        CommandInfos[commandName].HelpSection);
-    }
+    return commandArgs;
+  }
 
-    private bool CommandParametersIsCorrect(CommandInfo commandInfo, string[] commandParameters)
-    {
-      if (commandInfo.RequiredParameters.Length > commandParameters.Length)
-        return false;
-
-      if (commandParameters.Length > commandInfo.RequiredParameters.Length + commandInfo.OptionalParameters.Length)
-        return false;
-
-      return true;
-    }
-
-    private record CommandInfo(CommandParameter[] RequiredParameters, CommandParameter[] OptionalParameters, string HelpSection,
-    Func<IUserTaskService, IPresenter, CommandParameter[], ICommand> CommandCreator);
+  private record CommandInfo(string HelpSection, Func<IUserTaskService, IPresenter, IDictionary<string, string?>, ICommand> CommandCreator);
 }
+
+class CommandParseException(string message) : Exception(message);
