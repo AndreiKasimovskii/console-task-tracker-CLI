@@ -1,6 +1,3 @@
-using System.IO.Compression;
-using Microsoft.VisualBasic;
-
 namespace TaskTracker.Domain.Entities;
 
 public class UserTask(string title)
@@ -63,10 +60,10 @@ public class UserTask(string title)
         DateTimeOffset createdDate, string? status, DateTimeOffset? deadline)
     {
         var validationResult = ValidateRestoredParameters(id, title, createdDate, status, deadline);
-        if(validationResult.Success)
-            return new(id, title, createdDate, validationResult.ParsedTaskStatus, description, deadline);
-        else
+        if (!validationResult.Success)
             throw new StorageCorruptedException(validationResult.FailedMessage);
+        
+        return new(id, title, createdDate, validationResult.ParsedTaskStatus, description, deadline);
     }
 
     private static ValidationRestoredParametersResult ValidateRestoredParameters(long id, string title, DateTimeOffset createdDate, string? status, DateTimeOffset? deadline)
