@@ -31,7 +31,7 @@ class CommandDispatcher(IPresenter presenter)
     }
     catch (TimeoutException)
     {
-      presenter.PrintWarning("Операции занята (таймаут)");
+      presenter.PrintWarning("Операции не выполнена. Превышено время ожидания");
     }
     catch (IOException exception)
     {
@@ -40,7 +40,10 @@ class CommandDispatcher(IPresenter presenter)
     catch (CommandParseException exception)
     {
       presenter.PrintError($"Ошибка парсинга команды: {exception.Message}");
-      presenter.PrintHint(AllCommandHelp());
+      presenter.PrintHint(exception.CommandName is not null 
+        ? GetCommandHelp(exception.CommandName) 
+        : AllCommandHelp()
+      );
     }
     catch (Exception exception)
     {
@@ -106,7 +109,7 @@ class CommandDispatcher(IPresenter presenter)
       CommandInfos[commandName].HelpSection);
   }
 
-  private ICommand ParseCommand(string[] args)
+  private static ICommand ParseCommand(string[] args)
   {
     var commandName = args.Length > 0
       ? args[0]
@@ -123,7 +126,7 @@ class CommandDispatcher(IPresenter presenter)
     return command;
   }
 
-  private IDictionary<string, string?> PrepareArgs(string[] args)
+  private static Dictionary<string, string?> PrepareArgs(string[] args)
   {
     var commandArgs = new Dictionary<string, string?>();
 
@@ -133,20 +136,21 @@ class CommandDispatcher(IPresenter presenter)
     if (!args[1].StartsWith("--"))
       throw new CommandParseException("Неверный формат команды! Команда не может принимать значение без имени аргумента");
 
-    for (int i = 1; i < args.Length;)
+    for (var i = 1; i < args.Length;)
     {
-      string paramName = args[i];
-      string? value = null;
+      if(!args[i].StartsWith("--"))
+        continue;
+      
+      var paramName = args[i];
+      if (!commandArgs.TryAdd(paramName, null))
+        throw new CommandParseException($"Параметр {paramName} указан дважды!");
+      
       ++i;
-      if (i < args.Length 
-          && !args[i].StartsWith("--"))
-      {
-        value = args[i];
-        ++i;
-      }
-
-      if (!commandArgs.TryAdd(paramName, value))
-        throw new CommandParseException("Параметр указан дважды!");
+      if (i >= args.Length || args[i].StartsWith("--")) 
+        continue;
+      
+      commandArgs[paramName] = args[i];
+      ++i;
     }
 
     return commandArgs;
