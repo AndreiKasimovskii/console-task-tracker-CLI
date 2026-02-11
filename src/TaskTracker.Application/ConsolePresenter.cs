@@ -42,4 +42,20 @@ class ConsolePresenter : IPresenter
       Console.WriteLine(warning);
       Console.ResetColor();
     }
+
+    public void PrintTask(UserTask? task)
+    {
+      if (task is null)
+      {
+        Console.WriteLine("No task data...");
+        return;
+      }
+
+      Console.WriteLine($"[#{task.Id}] \n" +
+                        $"{task.Title} \n" +
+                        $"Статус:\n{task.Status}\n" +
+                        $"Описание:\n{task.Description}\n" +
+                        $"Создана:\n{task.CreatedDate}\n" +
+                        $"Срок: {(task.Deadline.HasValue ? task.Deadline.Value.ToString("yyyy-MM-dd") : "none")}");
+    }
 }
