@@ -14,12 +14,10 @@ class AddCommand : ICommand
         Required = true
     };
     private readonly CommandParameter<string?> _description = new("--desc", v => v);
-    private readonly CommandParameter<DateTimeOffset?> _deadline = new("--deadline", v =>
-    {
-        if (!DateTimeOffset.TryParse(v, out var deadline))
-            throw new CommandParseException($"Не правильно указан формат параметра {nameof(deadline)}");
-        return deadline;
-    });
+    private readonly CommandParameter<DateTimeOffset?> _deadline = new("--deadline", v 
+        => !DateTimeOffset.TryParse(v, out var deadline) 
+        ? throw new CommandParseException($"Не правильно указан формат параметра {nameof(deadline)}") 
+        : deadline);
 
     private readonly List<ICommandParameter> _parameters;
 
@@ -39,9 +37,19 @@ class AddCommand : ICommand
             UserTaskStatus.Active, 
             _deadline.Value);
 
-        await _userTaskService.AddTask(dto);
+        var operationResult = await _userTaskService.AddTask(dto);
 
-        _presenter.Print("Задача успешно создана!");
+        if (operationResult.IsSuccess)
+        {
+            _presenter.Print("Задача успешно создана!");
+            _presenter.PrintTask(operationResult.UserTask);
+        }
+        else
+        {
+            _presenter.PrintWarning("Задача не была создана:");
+            var errorMessage = OperationsErrorsHandler.ParseError(operationResult.ErrorType);
+            _presenter.PrintError(errorMessage);
+        }
     }
 
     public static ICommand CreateCommand(IUserTaskService userTaskService, IPresenter presenter,
