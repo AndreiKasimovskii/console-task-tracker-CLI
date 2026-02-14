@@ -18,7 +18,7 @@ abstract class CommandBase(string commandName) : ICommand
     foreach (var reqParameter in requiredParameters)
     {
       if (!args.TryGetValue(reqParameter.Name, out var value))
-        throw new CommandParseException($"Не указан обязательный параметр {reqParameter.Name}");
+        throw new CommandParseException($"Не указан обязательный параметр {reqParameter.Name}", commandName);
       if (value is null)
         throw new CommandParseException(
             $"Не указано значение для обязательного параметра {reqParameter.Name}");
