@@ -17,7 +17,10 @@ internal class CommandDispatcher(IPresenter presenter, IUserTaskService userTask
       "Параметры --desc и -deadline не обязательные.")},
     {"del", new CommandInfo(
       "del --id <id>" +
-      "\nКоманда удаляет задачу с идентификатором <id>.")}
+      "\nКоманда удаляет задачу с идентификатором <id>.")},
+    {"show", new CommandInfo(
+      "show --id <id>" +
+      "\nКоманда показывает параметры задачи с идентификатором <id>.")}
   };
 
   public async Task Run(string[] applicationParameters)
