@@ -115,12 +115,7 @@ internal class CommandDispatcher(IPresenter presenter, IUserTaskService userTask
       ? args[0]
       : throw new CommandParseException("Не указана команда для выполнения!");
 
-    // if (!CommandInfos.TryGetValue(commandName, out var commandInfo))
-    //   throw new CommandParseException($"Команда {commandName} не определена в приложении.");
-
     var commandArgs = PrepareCommandArgs(args);
-
-    // var command = commandInfo.CommandCreator(userTaskService, presenter, commandArgs);
 
     return (commandName, commandArgs);
   }
