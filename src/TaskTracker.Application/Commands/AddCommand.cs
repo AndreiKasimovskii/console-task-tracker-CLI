@@ -46,7 +46,7 @@ internal class AddCommand : CommandBase, ICommand
         }
         else
         {
-            presenter.PrintWarning("Задача не была создана:");
+            presenter.PrintWarning("Задача не была создана.");
             var errorMessage = OperationsErrorsHandler.ParseError(operationResult.ErrorType);
             presenter.PrintError(errorMessage);
         }
