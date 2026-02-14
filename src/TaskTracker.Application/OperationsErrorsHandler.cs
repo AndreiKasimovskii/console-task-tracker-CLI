@@ -9,6 +9,7 @@ public static class OperationsErrorsHandler
     return errorType switch
     {
       ErrorType.DuplicateTask => "Задача с таким загловком и сроком уже существует!",
+      ErrorType.NotFound => "Задача не найдена",
       _ => "Неизвестный тип ошибки"
     };
   }
