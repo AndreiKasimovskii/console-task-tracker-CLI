@@ -1,18 +1,16 @@
 using System.Text;
 using TaskTracker.Domain.Abstractions;
-using TaskTracker.Domain.Services;
-using TaskTracker.Infrastructure;
 
 namespace TaskTracker.Application;
 
-class CommandDispatcher(IPresenter presenter)
+internal class CommandDispatcher(IPresenter presenter, IUserTaskService userTaskService)
 {
   private static readonly Dictionary<string, CommandInfo> CommandInfos = new()
   {
-    {"list", new CommandInfo(ListCommand.CreateCommand, 
+    {"list", new CommandInfo(
       "list " +
       "\nКоманда выводит список активных задач на текущую дату. Задачи отсортированы по сроку выполнения.")},
-    {"add", new CommandInfo(AddCommand.CreateCommand, 
+    {"add", new CommandInfo(
       "add --title <title> [--desc <description>] [--deadline <deadline(yyyy-MM-dd)>]" +
       "\nКоманда создает новую задачу с заголовком <title>, описанием <description> и сроком <deadline>." +
       "Параметры --desc и -deadline не обязательные.")}
@@ -22,8 +20,9 @@ class CommandDispatcher(IPresenter presenter)
   {
     try
     {
-      var command = ParseCommand(applicationParameters);
-      await command.Execute();
+      var (commandName, commandArguments) = ParseCliArguments(applicationParameters);
+      var command = CommandFactory.Create(commandName, commandArguments);
+      await command.Execute(userTaskService, presenter);
     }
     catch (InvalidDataException exception)
     {
@@ -109,24 +108,23 @@ class CommandDispatcher(IPresenter presenter)
       CommandInfos[commandName].HelpSection);
   }
 
-  private static ICommand ParseCommand(string[] args)
+  private (string CommandName, Dictionary<string, string?> Parameters) ParseCliArguments(string[] args)
   {
     var commandName = args.Length > 0
       ? args[0]
       : throw new CommandParseException("Не указана команда для выполнения!");
 
-    if (!CommandInfos.TryGetValue(commandName, out var commandInfo))
-      throw new CommandParseException($"Команда {commandName} не определена в приложении.");
+    // if (!CommandInfos.TryGetValue(commandName, out var commandInfo))
+    //   throw new CommandParseException($"Команда {commandName} не определена в приложении.");
 
-    var commandArgs = PrepareArgs(args);
+    var commandArgs = PrepareCommandArgs(args);
 
-    var command = commandInfo.CommandCreator(new UserTaskService(new UserTaskRepository(new FileStore())),
-      new ConsolePresenter(), commandArgs);
+    // var command = commandInfo.CommandCreator(userTaskService, presenter, commandArgs);
 
-    return command;
+    return (commandName, commandArgs);
   }
 
-  private static Dictionary<string, string?> PrepareArgs(string[] args)
+  private static Dictionary<string, string?> PrepareCommandArgs(string[] args)
   {
     var commandArgs = new Dictionary<string, string?>();
 
@@ -156,5 +154,5 @@ class CommandDispatcher(IPresenter presenter)
     return commandArgs;
   }
 
-  private record CommandInfo(Func<IUserTaskService, IPresenter, IDictionary<string, string?>, ICommand> CommandCreator, string HelpSection);
+  private record CommandInfo(string HelpSection);
 }
