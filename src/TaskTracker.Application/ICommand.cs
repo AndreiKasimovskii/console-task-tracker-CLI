@@ -1,6 +1,8 @@
+using TaskTracker.Domain.Abstractions;
+
 namespace TaskTracker.Application;
 
 interface ICommand
 {
-  Task Execute();
+  Task Execute(IUserTaskService userTaskService, IPresenter presenter);
 }
