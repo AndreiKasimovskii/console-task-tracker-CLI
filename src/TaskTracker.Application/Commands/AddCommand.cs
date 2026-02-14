@@ -23,7 +23,9 @@ internal class AddCommand : CommandBase, ICommand
 
     public AddCommand() : base("add")
     {
-        Parameters = [_title, _description, _deadline];
+        Parameters.Add(_title);
+        Parameters.Add(_description);
+        Parameters.Add(_deadline);
     }
     
     public override async Task Execute(IUserTaskService userTaskService, IPresenter presenter)

@@ -4,15 +4,12 @@ namespace TaskTracker.Application.Commands.Common;
 
 abstract class CommandBase(string commandName) : ICommand
 {
-  protected ICommandParameter[]? Parameters { get; init; }
+  protected HashSet<ICommandParameter> Parameters { get; } = [];
 
   public abstract Task Execute(IUserTaskService userTaskService, IPresenter presenter);
 
   protected internal void ParseParameters(IDictionary<string, string?> args)
-  {
-    if (Parameters is null)
-      throw new Exception("Не инициализированы параметры команды");
-    
+  { 
     if (args.Keys.Except(Parameters.Select(p => p.Name)).Any())
       throw new CommandParseException("Указаны неизвестные параметры для команды.", commandName);
     var requiredParameters = Parameters

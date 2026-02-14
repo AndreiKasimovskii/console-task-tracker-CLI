@@ -3,13 +3,8 @@ using TaskTracker.Domain.Abstractions;
 
 namespace TaskTracker.Application.Commands;
 
-internal class ListCommand : CommandBase
+internal class ListCommand() : CommandBase("list")
 {
-  public ListCommand() : base("list")
-  {
-    Parameters = [];
-  }
-
   public override async Task Execute(IUserTaskService userTaskService, IPresenter presenter)
   {
     var tasks = await userTaskService.ShowTasksList();
