@@ -1,10 +1,11 @@
+using TaskTracker.Application.Commands.Common;
 using TaskTracker.Domain.Abstractions;
 using TaskTracker.Domain.DataTransferObjects;
 using TaskTracker.Domain.Entities;
 
-namespace TaskTracker.Application;
+namespace TaskTracker.Application.Commands;
 
-class AddCommand : CommandBase, ICommand
+internal class AddCommand : CommandBase, ICommand
 {
     #region Parameters
     private readonly CommandParameter<string> _title = new("--title", v => v)

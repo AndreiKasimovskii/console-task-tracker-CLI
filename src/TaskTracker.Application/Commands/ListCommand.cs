@@ -1,8 +1,9 @@
+using TaskTracker.Application.Commands.Common;
 using TaskTracker.Domain.Abstractions;
 
-namespace TaskTracker.Application;
+namespace TaskTracker.Application.Commands;
 
-class ListCommand : CommandBase
+internal class ListCommand : CommandBase
 {
   public ListCommand() : base("list")
   {

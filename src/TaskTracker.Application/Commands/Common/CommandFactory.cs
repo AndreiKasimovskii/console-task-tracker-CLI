@@ -1,4 +1,4 @@
-namespace TaskTracker.Application;
+namespace TaskTracker.Application.Commands.Common;
 
 internal static class CommandFactory
 {

@@ -1,6 +1,6 @@
 using TaskTracker.Domain.Abstractions;
 
-namespace TaskTracker.Application;
+namespace TaskTracker.Application.Commands.Common;
 
 interface ICommand
 {

@@ -1,6 +1,6 @@
 using TaskTracker.Domain.Abstractions;
 
-namespace TaskTracker.Application;
+namespace TaskTracker.Application.Commands.Common;
 
 abstract class CommandBase(string commandName) : ICommand
 {
