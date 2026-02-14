@@ -63,10 +63,9 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
     public async Task<OperationResult> ShowTask(long taskId)
     {
         var task = await taskRepository.GetById(taskId);
-        if (task is null)
-            return OperationResult.Failure(ErrorType.NotFound);
-
-        return OperationResult.Success(task);
+        return task is null 
+            ? OperationResult.Failure(ErrorType.NotFound) 
+            : OperationResult.Success(task);
     }
 
     public async Task<OperationResult> ChangeStatus(long taskId, UserTaskStatus newTaskStatus)
