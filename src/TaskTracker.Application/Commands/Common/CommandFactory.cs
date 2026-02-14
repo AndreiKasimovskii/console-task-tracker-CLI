@@ -8,6 +8,7 @@ internal static class CommandFactory
   {
     Creators["list"] = () => new ListCommand();
     Creators["add"] = () => new AddCommand();
+    Creators["del"] = () => new DeleteCommand();
   }
 
   public static ICommand Create(string commandName, Dictionary<string, string?> parameters)
