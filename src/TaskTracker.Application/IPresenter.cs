@@ -14,7 +14,7 @@ interface IPresenter
 
   void PrintTasks(IEnumerable<UserTask> userTasks);
 
-  void PrintTask(UserTask? task);
+  void PrintTask(UserTask task);
 
   void PrintQuestion(string question);
 }
