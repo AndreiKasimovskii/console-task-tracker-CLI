@@ -39,10 +39,10 @@ internal class AddCommand : CommandBase, ICommand
 
         var operationResult = await userTaskService.AddTask(dto);
 
-        if (operationResult.IsSuccess)
+        if (operationResult is {IsSuccess:true, UserTask: {} task})
         {
             presenter.Print("Задача успешно создана!");
-            presenter.PrintTask(operationResult.UserTask);
+            presenter.PrintTask(task);
         }
         else
         {
