@@ -10,6 +10,7 @@ public static class OperationsErrorsHandler
     {
       ErrorType.DuplicateTask => "Задача с таким загловком и сроком уже существует!",
       ErrorType.NotFound => "Задача не найдена",
+      ErrorType.InputDateLaterDeadline => "Срок задачи указан некорректно! Он не может быть раньше даты создания задачи (текущей даты).",
       _ => "Неизвестный тип ошибки"
     };
   }
