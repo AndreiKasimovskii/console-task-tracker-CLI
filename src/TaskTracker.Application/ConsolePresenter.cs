@@ -2,7 +2,7 @@ using TaskTracker.Domain.Entities;
 
 namespace TaskTracker.Application;
 
-class ConsolePresenter : IPresenter
+internal class ConsolePresenter : IPresenter
 {
   public void PrintError(string error)
   {
@@ -43,19 +43,12 @@ class ConsolePresenter : IPresenter
       Console.ResetColor();
     }
 
-    public void PrintTask(UserTask? task)
+    public void PrintTask(UserTask task)
     {
-      if (task is null)
-      {
-        Console.WriteLine("No task data...");
-        return;
-      }
-
-      Console.WriteLine($"[#{task.Id}] \n" +
+      Console.WriteLine($"Task [#{task.Id}] | {task.CreatedDate}\n" +
+                        $"[{task.Status}]\n" +
                         $"{task.Title} \n" +
-                        $"Статус:\n{task.Status}\n" +
-                        $"Описание:\n{task.Description}\n" +
-                        $"Создана:\n{task.CreatedDate}\n" +
+                        $"Описание:\n\t{task.Description}\n" +
                         $"Срок: {(task.Deadline.HasValue ? task.Deadline.Value.ToString("yyyy-MM-dd") : "none")}");
     }
 }
