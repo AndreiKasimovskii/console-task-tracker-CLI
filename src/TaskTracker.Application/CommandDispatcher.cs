@@ -20,7 +20,10 @@ internal class CommandDispatcher(IPresenter presenter, IUserTaskService userTask
       "\nКоманда удаляет задачу с идентификатором <id>.")},
     {"show", new CommandInfo(
       "show --id <id>" +
-      "\nКоманда показывает параметры задачи с идентификатором <id>.")}
+      "\nКоманда показывает параметры задачи с идентификатором <id>.")},
+    {"edit", new CommandInfo(
+      "edit --id <id> [--title <title> --desc <description> --deadline <deadline>]" +
+      "\nКоманда редактирует указанные параметры задачи (title, description, deadline) с идентификатором <id>.")}
   };
 
   public async Task Run(string[] applicationParameters)
