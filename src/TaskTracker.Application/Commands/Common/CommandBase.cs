@@ -39,6 +39,8 @@ abstract class CommandBase(string commandName) : ICommand
               $"Не указано значение для параметра {optionalParameter.Name}");
         optionalParameter.SetValue(value);
       }
+
+      optionalParameter.NotDefined = false;
     }
   }
 }
