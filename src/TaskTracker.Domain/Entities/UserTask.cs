@@ -52,7 +52,8 @@ public class UserTask(string title)
     public bool TrySetDeadline(DateTimeOffset? deadline)
     {
         if(deadline.HasValue && 
-            CreatedDate.CompareTo(deadline.Value) > 0)
+            (CreatedDate.CompareTo(deadline.Value) > 0 
+             || DateTimeOffset.UtcNow.CompareTo(deadline.Value) > 0))
             return false;
 
         Deadline = deadline;
