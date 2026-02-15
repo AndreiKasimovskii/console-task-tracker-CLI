@@ -17,8 +17,6 @@ internal class AddCommand : CommandBase, ICommand
         => !DateTimeOffset.TryParse(v, out var deadline) 
         ? throw new CommandParseException($"Не правильно указан формат параметра {nameof(deadline)}") 
         : deadline);
-    
-    //private ICommandParameter[] Parameters { get; }
     #endregion
 
     public AddCommand() : base("add")
