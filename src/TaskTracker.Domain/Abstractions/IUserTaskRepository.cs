@@ -6,9 +6,9 @@ public interface IUserTaskRepository
 {
     Task<UserTask?> GetById(long id);
 
-    Task Create(UserTask task);
+    Task<UserTask> Create(UserTask task);
 
-    Task Update(UserTask task);
+    Task<UserTask> Update(UserTask task);
 
     Task Delete(long id);
 

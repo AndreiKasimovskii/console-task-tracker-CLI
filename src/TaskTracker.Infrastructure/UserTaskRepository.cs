@@ -1,6 +1,7 @@
 using System.Text.Json;
 using TaskTracker.Domain.Abstractions;
 using TaskTracker.Domain.Entities;
+using TaskTracker.Domain.Exceptions;
 
 namespace TaskTracker.Infrastructure;
 
@@ -8,7 +9,7 @@ public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
 {
     private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
 
-    public async Task Create(UserTask task)
+    public async Task<UserTask> Create(UserTask task)
     {
         bool lockTaken = false;
         try
@@ -30,6 +31,14 @@ public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
             });
 
             await fileStore.WriteToFileAsync(storageModel);
+            var createdTask = storageModel.Tasks.First(t => t.Id == storageModel.LastId);
+            return UserTask.Restore(
+                createdTask.Id, 
+                createdTask.Title, 
+                createdTask.Description, 
+                createdTask.CreatedDate, 
+                createdTask.Status,
+                createdTask.Deadline);
         }
         catch(JsonException ex)
         {
@@ -163,7 +172,7 @@ public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
         }
     }
 
-    public async Task Update(UserTask task)
+    public async Task<UserTask> Update(UserTask task)
     {
         bool lockTaken = false;
         try
@@ -182,6 +191,13 @@ public class UserTaskRepository(FileStore fileStore) : IUserTaskRepository
             updatesTask.Deadline = task.Deadline;
 
             await fileStore.WriteToFileAsync(storageModel);
+            return UserTask.Restore(
+                updatesTask.Id,
+                updatesTask.Title,
+                updatesTask.Description,
+                updatesTask.CreatedDate,
+                updatesTask.Status,
+                updatesTask.Deadline);
         }
         catch(JsonException ex)
         {

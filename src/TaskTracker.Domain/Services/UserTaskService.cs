@@ -21,8 +21,8 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
         if(await taskRepository.HasDuplicate(newTask.Title, newTask.Deadline))
             return OperationResult.Failure(ErrorType.DuplicateTask);
 
-        await taskRepository.Create(newTask);
-        return OperationResult.Success();
+        var createdTask = await taskRepository.Create(newTask);
+        return OperationResult.Success(createdTask);
     }
 
     public async Task<OperationResult> EditTask(long taskId, Parameter<string> title, Parameter<string> description,
@@ -46,8 +46,8 @@ public class UserTaskService(IUserTaskRepository taskRepository) : IUserTaskServ
         if(await taskRepository.HasDuplicate(editedTask.Title, editedTask.Deadline, editedTask.Id))
             return OperationResult.Failure(ErrorType.DuplicateTask);
 
-        await taskRepository.Update(editedTask);
-        return OperationResult.Success();
+        var updatedTask = await taskRepository.Update(editedTask);
+        return OperationResult.Success(updatedTask);
     }
 
     public async Task<OperationResult> RemoveTask(long taskId)
