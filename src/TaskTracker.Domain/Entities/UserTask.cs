@@ -1,3 +1,5 @@
+using TaskTracker.Domain.Exceptions;
+
 namespace TaskTracker.Domain.Entities;
 
 public class UserTask(string title)
@@ -27,14 +29,15 @@ public class UserTask(string title)
     #region Methods
     public bool TryChangeStatus(UserTaskStatus newStatus)
     {
-        if(Status is UserTaskStatus.Completed or UserTaskStatus.Cancelled)
-            return false;
-
-        if(Status == UserTaskStatus.Active && newStatus is UserTaskStatus.Active)
-            return false;
-
-        Status = newStatus;
-        return true;
+        switch (Status)
+        {
+            case UserTaskStatus.Completed or UserTaskStatus.Cancelled:
+            case UserTaskStatus.Active when newStatus is UserTaskStatus.Active:
+                return false;
+            default:
+                Status = newStatus;
+                return true;
+        }
     }
 
     public bool TryChangeTitle(string? newTitle)
@@ -89,5 +92,3 @@ public class UserTask(string title)
     private record ValidationRestoredParametersResult(bool Success, string? FailedMessage = null, UserTaskStatus ParsedTaskStatus = default);
     #endregion
 }
-
-public class StorageCorruptedException(string? message) : Exception(message) { }
