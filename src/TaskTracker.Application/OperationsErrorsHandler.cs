@@ -12,6 +12,7 @@ public static class OperationsErrorsHandler
       ErrorType.NotFound => "Задача не найдена",
       ErrorType.InputDateLaterDeadline => "Срок задачи указан некорректно! Он не может быть раньше даты создания задачи или текущей даты",
       ErrorType.InvalidTitle => "Заголовок задачи не может быть пустым или состоять только из пробельных символов",
+      ErrorType.IncorrectStatus => "Нельзя изменить текущий статус задачи",
       _ => "Неизвестный тип ошибки"
     };
   }
