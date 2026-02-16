@@ -11,6 +11,7 @@ internal static class CommandFactory
     Creators["del"] = () => new DeleteCommand();
     Creators["show"] = () => new ShowCommand();
     Creators["edit"] = () => new EditCommand();
+    Creators["change-status"] = () => new ChangeStatusCommand();
   }
 
   public static ICommand Create(string commandName, Dictionary<string, string?> parameters)
