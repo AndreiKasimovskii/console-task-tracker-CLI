@@ -168,7 +168,7 @@ public class UserTaskTests
     #region Arrange
 
     var userTask = _testData.First(t => t.Id == 1);
-    var newDeadline = new DateTimeOffset(new DateTime(2026, 2, 28));
+    var newDeadline = new DateTimeOffset(DateTime.Now.AddDays(10));
     #endregion
 
     #region Act/Assert
